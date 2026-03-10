@@ -50,6 +50,12 @@ if ($null -eq $python) {
 try {
     $pythonVersion = & $python.Exe @($python.Args + @('--version')) 2>&1
     Write-Host "✓ $pythonVersion detected" -ForegroundColor Green
+    # Check Python 3.10+
+    $verCheck = & $python.Exe @($python.Args + @('-c', 'import sys; print(1 if sys.version_info >= (3, 10) else 0)')) 2>&1
+    if ($verCheck.Trim() -ne '1') {
+        Write-Host "✗ Python 3.10+ is required but an older version was found." -ForegroundColor Red
+        exit 1
+    }
 } catch {
     Write-Host "✗ Python is installed but could not be executed." -ForegroundColor Red
     exit 1
@@ -116,14 +122,6 @@ try {
         Copy-Item -Recurse -Force "$SchemaPath\*" $SkillSchema
     }
 
-    # Copy reference docs
-    $PdfPath = "$TempDir\pdf"
-    if (Test-Path $PdfPath) {
-        $SkillPdf = "$SkillDir\pdf"
-        New-Item -ItemType Directory -Force -Path $SkillPdf | Out-Null
-        Copy-Item -Recurse -Force "$PdfPath\*" $SkillPdf
-    }
-
     # Copy agents
     Write-Host "→ Installing subagents..." -ForegroundColor Yellow
     $AgentsPath = Join-Path $TempDir 'agents'
@@ -154,17 +152,39 @@ try {
         Copy-Item -Force $reqFile $installedReqFile
     }
 
-    # Install Python dependencies
+    # Install Python dependencies (venv preferred, global fallback)
     Write-Host "→ Installing Python dependencies..." -ForegroundColor Yellow
+    $VenvDir = Join-Path $SkillDir '.venv'
+    $venvCreated = $false
     if (Test-Path $reqFile) {
         try {
-            $pip = Invoke-External -Exe $python.Exe -Args @($python.Args + @('-m','pip','install','-q','-r',$reqFile)) -Quiet
-            if ($pip.ExitCode -ne 0) {
-                throw ($pip.Output -join "`n")
+            $venvResult = Invoke-External -Exe $python.Exe -Args @($python.Args + @('-m','venv',$VenvDir)) -Quiet
+            if ($venvResult.ExitCode -eq 0) {
+                $venvPip = Join-Path $VenvDir 'Scripts\pip.exe'
+                if (-not (Test-Path $venvPip)) {
+                    $venvPip = Join-Path $VenvDir 'bin/pip'
+                }
+                $pip = Invoke-External -Exe $venvPip -Args @('install','-q','-r',$reqFile) -Quiet
+                if ($pip.ExitCode -eq 0) {
+                    Write-Host "  ✓ Installed in venv at $VenvDir" -ForegroundColor Green
+                    $venvCreated = $true
+                } else {
+                    throw "venv pip install failed"
+                }
+            } else {
+                throw "venv creation failed"
             }
         } catch {
-            Write-Host "  ⚠  Could not auto-install Python packages." -ForegroundColor Yellow
-            Write-Host "  Try: $($python.Exe) $($python.Args -join ' ') -m pip install -r `"$installedReqFile`"" -ForegroundColor Yellow
+            Write-Host "  ⚠  Venv failed, falling back to pip install..." -ForegroundColor Yellow
+            try {
+                $pip = Invoke-External -Exe $python.Exe -Args @($python.Args + @('-m','pip','install','-q','-r',$reqFile)) -Quiet
+                if ($pip.ExitCode -ne 0) {
+                    throw ($pip.Output -join "`n")
+                }
+            } catch {
+                Write-Host "  ⚠  Could not auto-install Python packages." -ForegroundColor Yellow
+                Write-Host "  Try: $($python.Exe) $($python.Args -join ' ') -m pip install -r `"$installedReqFile`"" -ForegroundColor Yellow
+            }
         }
     } else {
         Write-Host "  ⚠  No requirements.txt found; skipping Python dependency install." -ForegroundColor Yellow
@@ -173,7 +193,15 @@ try {
     # Optional: Install Playwright browsers
     Write-Host "→ Installing Playwright browsers (optional, for visual analysis)..." -ForegroundColor Yellow
     try {
-        $pw = Invoke-External -Exe $python.Exe -Args @($python.Args + @('-m','playwright','install','chromium')) -Quiet
+        if ($venvCreated) {
+            $venvPython = Join-Path $VenvDir 'Scripts\python.exe'
+            if (-not (Test-Path $venvPython)) {
+                $venvPython = Join-Path $VenvDir 'bin/python'
+            }
+            $pw = Invoke-External -Exe $venvPython -Args @('-m','playwright','install','chromium') -Quiet
+        } else {
+            $pw = Invoke-External -Exe $python.Exe -Args @($python.Args + @('-m','playwright','install','chromium')) -Quiet
+        }
         if ($pw.ExitCode -ne 0) {
             throw ($pw.Output -join "`n")
         }

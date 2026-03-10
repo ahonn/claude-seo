@@ -34,7 +34,7 @@ main() {
 
     # Clone or update
     TEMP_DIR=$(mktemp -d)
-    trap "rm -rf ${TEMP_DIR}" EXIT
+    trap 'rm -rf "${TEMP_DIR}"' EXIT
 
     echo "↓ Downloading Claude SEO..."
     git clone --depth 1 "${REPO_URL}" "${TEMP_DIR}/claude-seo" 2>/dev/null
@@ -57,12 +57,6 @@ main() {
     if [ -d "${TEMP_DIR}/claude-seo/schema" ]; then
         mkdir -p "${SKILL_DIR}/schema"
         cp -r "${TEMP_DIR}/claude-seo/schema/"* "${SKILL_DIR}/schema/"
-    fi
-
-    # Copy reference docs
-    if [ -d "${TEMP_DIR}/claude-seo/pdf" ]; then
-        mkdir -p "${SKILL_DIR}/pdf"
-        cp -r "${TEMP_DIR}/claude-seo/pdf/"* "${SKILL_DIR}/pdf/"
     fi
 
     # Copy agents

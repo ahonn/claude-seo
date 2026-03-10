@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **COMMANDS.md category list**: Added IndexNow Protocol as 9th category in `/seo technical` command reference
 - **Architecture docs**: Fixed scripts/ and hooks/ directory placement in CLAUDE.md tree diagram
 - **Agent descriptions**: Fixed seo-schema.md and seo-visual.md description grammar
+- **seo-sitemap path reference**: Fixed broken `assets/` path to `../seo-plan/assets/` (templates live in seo-plan, not seo-sitemap)
+- **Dead code in installers**: Removed references to nonexistent `pdf/` directory from both install.sh and install.ps1
+- **install.sh trap quoting**: Fixed unsafe variable expansion in trap to prevent issues with paths containing spaces
+- **install.ps1 venv support**: Added venv-based Python dependency installation matching install.sh behavior (previously installed globally)
+- **install.ps1 Python version check**: Added Python 3.10+ version validation matching install.sh (previously only checked Python existence)
 
 ### Changed
 - Bumped plugin version to 1.3.2
