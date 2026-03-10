@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-03-10
+
+### Fixed
+- **Technical SEO category count**: Updated from "8 categories" to "9 categories" in seo/SKILL.md and docs/COMMANDS.md (IndexNow Protocol was missing from count)
+- **COMMANDS.md category list**: Added IndexNow Protocol as 9th category in `/seo technical` command reference
+- **Architecture docs**: Fixed scripts/ and hooks/ directory placement in CLAUDE.md tree diagram
+- **Agent descriptions**: Fixed seo-schema.md and seo-visual.md description grammar
+
+### Changed
+- Bumped plugin version to 1.3.2
+- Removed stale troubleshooting entries that referenced pre-v1.2.0 install issues
+
+---
+
 ## [1.3.0] - 2026-03-06
 
 ### Added
