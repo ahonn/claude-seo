@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-seo",
+  "metadata": {
+    "description": "Comprehensive SEO analysis for Claude Code. Covers technical SEO, content quality (E-E-A-T), schema markup, image optimization, sitemap architecture, AI search optimization (GEO), and strategic planning."
+  },
+  "owner": {
+    "name": "AgriciDaniel"
+  },
+  "plugins": [
+    {
+      "name": "claude-seo",
+      "source": "./",
+      "description": "Comprehensive SEO analysis skill for Claude Code. Covers technical SEO, content quality (E-E-A-T), schema markup, image optimization, sitemap architecture, AI search optimization (GEO), and strategic planning across all industries.",
+      "version": "1.6.0",
+      "skills": ["./seo", "./skills"]
+    }
+  ]
+}
